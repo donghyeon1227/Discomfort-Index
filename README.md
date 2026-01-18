@@ -33,8 +33,9 @@
 ### 3-1. 구성 요소
 
 <p align="center">
-  <img src="image/HW.png" width="700" alt="hardware">
+  <img src="image/HW.png" width="500" alt="hardware">
 </p>
+
 - **Linux SBC (Raspberry Pi 등)**: 커널 드라이버 + 유저앱 실행
 - **DS1302 RTC**: 현재 시간 유지 및 설정(전원 OFF 대비)
 - **DHT11**: 온도/습도 입력
@@ -46,8 +47,9 @@
 
 ### 3-2. GPIO 매핑
 <p align="center">
-  <img src="image/kicad.png" width="700" alt="hardware">
+  <img src="image/kicad.png" width="500" alt="hardware">
 </p>
+
 | 구분 | 핀 | GPIO(BCM) | 의미 |
 |---|---:|---:|---|
 | RTC | RST | 17 | DS1302 Reset |
