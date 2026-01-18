@@ -67,3 +67,66 @@
 <p align="center">
   <img src="image/diagram.png" width="700" alt="hardware">
 </p>
+
+---
+
+## 4) DHT11 통신 파형 분석 (Oscilloscope Verification)
+
+DHT11은 **단선(1-Wire 유사) + 타이밍 기반 프로토콜**이라  
+GPIO 제어/샘플링 타이밍이 조금만 틀어져도 **Timeout / 잘못된 값**이 나기 쉽습니다.  
+본 프로젝트에서는 커널 드라이버에서 DHT11을 읽기 때문에, 오실로스코프로 실제 파형을 확인하여  
+**Start 신호 → Sensor 응답 → 40bit 데이터(습도/온도/체크섬)** 흐름을 검증했습니다.
+
+<p align="center">
+  <img src="image/dht11.png" width="950" alt="DHT11 Oscilloscope Waveform">
+</p>
+
+### 4-1. DHT11 프로토콜 요약
+- **Host(Start)**  
+  - DATA를 **LOW로 약 18ms** 유지 → **HIGH 20~40us**
+- **Sensor(Response)**  
+  - **LOW 80us → HIGH 80us**
+- **Data (총 40bit)**  
+  - 각 bit는 공통으로 **LOW 50us** 이후 HIGH 길이로 0/1 구분  
+  - `0`: HIGH 약 **26~28us**  
+  - `1`: HIGH 약 **70us**
+- 비트 구성(총 5바이트 = 40bit)
+  1) Humidity Int (8bit)  
+  2) Humidity Dec (8bit)  
+  3) Temperature Int (8bit)  
+  4) Temperature Dec (8bit)  
+  5) Checksum (8bit) = (앞 4바이트 합) & 0xFF
+
+---
+
+### 4-2. 파형 해석 (업로드한 캡처 기준)
+아래 구간이 순서대로 나타납니다.
+
+1) **Start Signal (Host)**
+- MCU가 데이터 라인을 길게 LOW로 끌어내려(≈18ms) 센서에 통신 시작을 알림
+
+2) **Response (DHT11)**
+- 센서가 **80us LOW → 80us HIGH**로 응답하여 준비 상태를 알림
+
+3) **40-bit Data Stream**
+- 총 5바이트가 전송됨 (Humidity/Temp/Checksum)
+- 각 bit는 `LOW(50us)` 이후 HIGH 폭으로 0/1 판별
+
+> 캡처에 표시된 값 예시처럼  
+> **습도 21%**, **온도 24.1°C**가 디코딩되는 형태로 확인 가능
+
+---
+
+### 4-3. 커널 드라이버에서 DHT11을 안정적으로 읽기 위한 포인트
+DHT11은 타이밍 민감도가 매우 높기 때문에 아래를 적용했습니다.
+
+- **인터럽트 영향 최소화**
+  - 측정 구간에서 `local_irq_save()` 등으로 타이밍 흔들림을 줄임
+- **측정 캐싱**
+  - `DHT_CACHE_MS=2000ms`로 과도한 재측정 방지 → 안정성/부하 개선
+- **Checksum 검증**
+  - 5번째 바이트로 데이터 무결성 확인 → 이상값 필터링
+
+---
+
+
