@@ -1,4 +1,4 @@
-# 🌡️Discomfort-Index 기반 환경 모니터링 & UI 시스템 (Linux Kernel Device Driver) (기간 기입) [팀/개인 기입]  
+# 🌡️Discomfort-Index 기반 환경 모니터링 & UI 시스템 (Linux Kernel Device Driver) (2025.12.29~2026.01.06) [3인]  
 > **RTC + 온습도(DHT11) + 로터리엔코더(IRQ) + OLED(SSD1306) + LED Bar**를 연동하여  
 > **현재 시간/온습도/불쾌지수(Discomfort Index)** 를 표시하고, **불쾌지수 단계에 따라 LED Bar를 자동 제어**하는 임베디드 리눅스 프로젝트
 
@@ -31,6 +31,10 @@
 ## 3) 전체 시스템 구성 (Hardware)
 
 ### 3-1. 구성 요소
+
+<p align="center">
+  <img src="image/HW.png" width="700" alt="hardware">
+</p>
 - **Linux SBC (Raspberry Pi 등)**: 커널 드라이버 + 유저앱 실행
 - **DS1302 RTC**: 현재 시간 유지 및 설정(전원 OFF 대비)
 - **DHT11**: 온도/습도 입력
@@ -40,7 +44,10 @@
 
 ---
 
-### 3-2. GPIO 매핑(BCM, 코드 기준: `driver.c`)
+### 3-2. GPIO 매핑
+<p align="center">
+  <img src="image/kicad.png" width="700" alt="hardware">
+</p>
 | 구분 | 핀 | GPIO(BCM) | 의미 |
 |---|---:|---:|---|
 | RTC | RST | 17 | DS1302 Reset |
@@ -55,12 +62,6 @@
 ---
 
 ### 3-3. 전체 구조 다이어그램
-```text
-[Rotary Encoder] --(GPIO24/25/26, IRQ)--> [Kernel Driver]
-[DS1302 RTC]     --(GPIO17/4/22)-------> [Kernel Driver] ---> /dev/clock_drv
-[DHT11]          --(GPIO23)------------> [Kernel Driver]
-[LED BAR]        <--(GPIO5..21)-------- [Kernel Driver]
-
-/dev/clock_drv  <---- read/write ---->  [User Application]
-                                       |
-                                       +--(I2C /dev/i2c-1, addr 0x3C)--> [SSD1306 OLED]
+<p align="center">
+  <img src="image/diagram.png" width="700" alt="hardware">
+</p>
